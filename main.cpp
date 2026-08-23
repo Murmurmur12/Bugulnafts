@@ -1045,37 +1045,49 @@ std::string getUserName(
 
 // Очень простое приведение русского текста к нижнему регистру.
 // В отличие от std::tolower работает с UTF-8 русскими буквами.
-std::string russianToLower(
-    std::string text
-    ) {
+std::string russianToLower(const std::string& text) {
+    std::string result;
 
-    std::map<unsigned char, unsigned char> upperToLower = {
+    for (size_t i = 0; i < text.size();) {
+        unsigned char c = static_cast<unsigned char>(text[i]);
 
-    {0x90, 0xB0}, {0x91, 0xB1},
-        {0x92, 0xB2}, {0x93, 0xB3},
-        {0x94, 0xB4}, {0x95, 0xB5},
-        {0x96, 0xB6}, {0x97, 0xB7},
-        {0x98, 0xB8}, {0x99, 0xB9},
-        {0x9A, 0xBA}, {0x9B, 0xBB},
-        {0x9C, 0xBC}, {0x9D, 0xBD},
-        {0x9E, 0xBE}, {0x9F, 0xBF},
-        {0xA0, 0xC0}, {0xA1, 0xC1},
-        {0xA2, 0xC2}, {0xA3, 0xC3},
-        {0xA4, 0xC4}, {0xA5, 0xC5},
-        {0xA6, 0xC6}, {0xA7, 0xC7},
-        {0xA8, 0xC8}, {0xA9, 0xC9},
-        {0xAA, 0xCA}, {0xAB, 0xCB},
-        {0xAC, 0xCC}, {0xAD, 0xCD},
-        {0xAE, 0xCE}, {0xAF, 0xCF},
-        {0xB0, 0xD0}, {0xB1, 0xD1},
-        {0xB2, 0xD2}, {0xB3, 0xD3},
-        {0xB4, 0xD4}, {0xB5, 0xD5},
-        {0xB6, 0xD6}, {0xB7, 0xD7},
-        {0xB8, 0xD8}, {0xB9, 0xD9},
-        {0xBA, 0xDA}, {0xBB, 0xDB},
-        {0xBC, 0xDC}, {0xBD, 0xDD},
-        {0xBE, 0xDE}, {0xBF, 0xDF}
-};
+        if (c >= 'A' && c <= 'Z') {
+            result += static_cast<char>(c + 32);
+            i++;
+            continue;
+        }
+
+        if (i + 1 < text.size() && c == 0xD0) {
+            unsigned char c2 = static_cast<unsigned char>(text[i + 1]);
+
+            if (c2 >= 0x90 && c2 <= 0x9F) {
+                result += static_cast<char>(0xD0);
+                result += static_cast<char>(c2 + 0x20);
+                i += 2;
+                continue;
+            }
+
+            if (c2 >= 0xA0 && c2 <= 0xAF) {
+                result += static_cast<char>(0xD1);
+                result += static_cast<char>(c2 - 0x20);
+                i += 2;
+                continue;
+            }
+
+            if (c2 == 0x81) {
+                result += static_cast<char>(0xD1);
+                result += static_cast<char>(0x91);
+                i += 2;
+                continue;
+            }
+        }
+
+        result += text[i];
+        i++;
+    }
+
+    return result;
+}
 
 for (size_t i = 0; i < text.size(); ++i) {
 
