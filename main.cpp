@@ -1046,61 +1046,22 @@ std::string getUserName(
 // Очень простое приведение русского текста к нижнему регистру.
 // В отличие от std::tolower работает с UTF-8 русскими буквами.
 std::string russianToLower(const std::string& text) {
-    std::string result;
+    std::string result = text;
 
-    for (size_t i = 0; i < text.size();) {
-        unsigned char c = static_cast<unsigned char>(text[i]);
+    for (size_t i = 0; i + 1 < result.size(); i++) {
+        unsigned char c = static_cast<unsigned char>(result[i]);
+        unsigned char c2 = static_cast<unsigned char>(result[i + 1]);
 
-        if (c >= 'A' && c <= 'Z') {
-            result += static_cast<char>(c + 32);
-            i++;
-            continue;
+        if (c == 0xD0 && c2 >= 0x90 && c2 <= 0x9F) {
+            result[i + 1] = static_cast<char>(c2 + 0x20);
         }
-
-        if (i + 1 < text.size() && c == 0xD0) {
-            unsigned char c2 = static_cast<unsigned char>(text[i + 1]);
-
-            if (c2 >= 0x90 && c2 <= 0x9F) {
-                result += static_cast<char>(0xD0);
-                result += static_cast<char>(c2 + 0x20);
-                i += 2;
-                continue;
-            }
-
-            if (c2 >= 0xA0 && c2 <= 0xAF) {
-                result += static_cast<char>(0xD1);
-                result += static_cast<char>(c2 - 0x20);
-                i += 2;
-                continue;
-            }
-
-            if (c2 == 0x81) {
-                result += static_cast<char>(0xD1);
-                result += static_cast<char>(0x91);
-                i += 2;
-                continue;
-            }
+        else if (c == 0xD0 && c2 >= 0xA0 && c2 <= 0xAF) {
+            result[i] = static_cast<char>(0xD1);
+            result[i + 1] = static_cast<char>(c2 - 0x20);
         }
-
-        result += text[i];
-        i++;
     }
 
     return result;
-}
-
-for (size_t i = 0; i < text.size(); ++i) {
-
-    unsigned char c =
-        static_cast<unsigned char>(text[i]);
-
-    auto it = upperToLower.find(c);
-
-    if (it != upperToLower.end())
-        text[i] = static_cast<char>(it->second);
-}
-
-return text;
 }
 
 
